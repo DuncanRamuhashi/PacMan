@@ -57,7 +57,8 @@ const App = () => {
   ]);
   const [gameOver, setGameOver] = useState(false);
   const [powerPelletActive, setPowerPelletActive] = useState(false);
-  const [winner, setWinner] = useState(false); // New state for winner
+  const [winner, setWinner] = useState(false);
+  const [startTouch, setStartTouch] = useState({ x: 0, y: 0 });
 
   const isValidMove = (x, y) => {
     const cell = grid[y]?.[x];
@@ -75,14 +76,12 @@ const App = () => {
           { dx: 0, dy: -1 }, // up
         ];
 
-        // Find the best direction towards Pac-Man
         const validMoves = directions
           .map(({ dx, dy }) => ({ x: x + dx, y: y + dy }))
           .filter(({ x: newX, y: newY }) => isValidMove(newX, newY));
 
         let targetMove = validMoves[0];
 
-        // Simple chase logic: prioritize moves that get closer to Pac-Man
         for (const move of validMoves) {
           if (
             Math.abs(move.x - pacmanPosition.x) + Math.abs(move.y - pacmanPosition.y) <
@@ -92,7 +91,6 @@ const App = () => {
           }
         }
 
-        // Move to the best target move
         return targetMove ? { ...ghost, position: targetMove } : ghost;
       })
     );
@@ -152,66 +150,76 @@ const App = () => {
     ]);
     setGameOver(false);
     setPowerPelletActive(false);
-    setWinner(false); // Reset winner state
+    setWinner(false);
+  };
+
+  const movePacman = (dir) => {
+    let newX = pacmanPosition.x;
+    let newY = pacmanPosition.y;
+
+    switch (dir) {
+      case 'right':
+        newX += 1;
+        setDirection('right');
+        break;
+      case 'left':
+        newX -= 1;
+        setDirection('left');
+        break;
+      case 'down':
+        newY += 1;
+        setDirection('down');
+        break;
+      case 'up':
+        newY -= 1;
+        setDirection('up');
+        break;
+      default:
+        return;
+    }
+
+    if (isValidMove(newX, newY) && newX >= 0 && newX < grid[0].length && newY >= 0 && newY < grid.length) {
+      const cell = grid[newY][newX];
+      const newGrid = grid.map((row, rowIndex) => {
+        if (rowIndex === newY) {
+          return row.substr(0, newX) + 'E' + row.substr(newX + 1);
+        }
+        return row;
+      });
+      setGrid(newGrid);
+      setPacmanPosition({ x: newX, y: newY });
+
+      if (cell === 'B') {
+        setScore((prevScore) => prevScore + 30);
+        setPowerPelletActive(true);
+        setTimeout(() => setPowerPelletActive(false), 5000);
+      } else if (cell === 'S') {
+        setScore((prevScore) => prevScore + 3);
+      }
+
+      checkVictory();
+    }
   };
 
   useEffect(() => {
     const handleKeyDown = (event) => {
       if (gameOver || winner) return;
-
-      let newX = pacmanPosition.x;
-      let newY = pacmanPosition.y;
-
       switch (event.key) {
         case 'ArrowRight':
-          newX += 1;
-          setDirection('right');
+          movePacman('right');
           break;
         case 'ArrowLeft':
-          newX -= 1;
-          setDirection('left');
+          movePacman('left');
           break;
         case 'ArrowDown':
-          newY += 1;
-          setDirection('down');
+          movePacman('down');
           break;
         case 'ArrowUp':
-          newY -= 1;
-          setDirection('up');
+          movePacman('up');
           break;
         default:
-          return; // Exit if it's not an arrow key
+          return;
       }
-
-      // Check for valid move
-      if (
-        isValidMove(newX, newY) &&
-        newX >= 0 &&
-        newX < grid[0].length &&
-        newY >= 0 &&
-        newY < grid.length
-      ) {
-        const cell = grid[newY][newX];
-        const newGrid = grid.map((row, rowIndex) => {
-          if (rowIndex === newY) {
-            return row.substr(0, newX) + 'E' + row.substr(newX + 1); // Mark as empty
-          }
-          return row;
-        });
-        setGrid(newGrid);
-        setPacmanPosition({ x: newX, y: newY });
-
-        if (cell === 'B') {
-          setScore((prevScore) => prevScore + 30);
-          setPowerPelletActive(true); // Activate power pellet
-          setTimeout(() => setPowerPelletActive(false), 5000); // Deactivate after 5 seconds
-        } else if (cell === 'S') {
-          setScore((prevScore) => prevScore + 3);
-        }
-      }
-
-      // After Pac-Man moves, check for victory
-      checkVictory();
     };
 
     window.addEventListener('keydown', handleKeyDown);
@@ -221,12 +229,42 @@ const App = () => {
   }, [grid, pacmanPosition, gameOver, winner]);
 
   useEffect(() => {
+    const handleTouchStart = (event) => {
+      const touch = event.touches[0];
+      setStartTouch({ x: touch.clientX, y: touch.clientY });
+    };
+
+    const handleTouchEnd = (event) => {
+      const touch = event.changedTouches[0];
+      const dx = touch.clientX - startTouch.x;
+      const dy = touch.clientY - startTouch.y;
+
+      if (Math.abs(dx) > Math.abs(dy)) {
+        if (dx > 0) movePacman('right');
+        else movePacman('left');
+      } else {
+        if (dy > 0) movePacman('down');
+        else movePacman('up');
+      }
+    };
+
+    const touchArea = document.getElementById('game-grid');
+    touchArea.addEventListener('touchstart', handleTouchStart);
+    touchArea.addEventListener('touchend', handleTouchEnd);
+
+    return () => {
+      touchArea.removeEventListener('touchstart', handleTouchStart);
+      touchArea.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, [pacmanPosition, grid, startTouch]);
+
+  useEffect(() => {
     const interval = setInterval(() => {
       if (!gameOver && !winner) {
         moveGhosts();
         checkCollision();
       }
-    }, 400); // Ghosts move every 400ms
+    }, 400);
 
     return () => clearInterval(interval);
   }, [ghosts, pacmanPosition, gameOver, winner]);
@@ -245,7 +283,7 @@ const App = () => {
     }
     switch (cell) {
       case 'W':
-        return <img src={wall} alt="Wall" className="h-5 w-5 block" />;
+        return <img src={wall} alt="Wall" className=" h-5 w-5 block" />;
       case 'S':
         return <img src={smalldot} className="h-5 w-5 block" alt="Small Dot" />;
       case 'B':
@@ -258,8 +296,15 @@ const App = () => {
   };
 
   return (
-    <div className={`flex flex-col justify-center items-center h-full ${currentTheme} py-16 px-52`}>
-      <h1 className="text-yellow-400 text-2xl lg:text-4xl font-extrabold lg:tracking-widest py-10">Pac Man</h1>
+    <div className={`flex flex-col justify-center items-center h-full ${currentTheme} py-16 md:px-40`}>
+      <h1 className="text-yellow-400 text-2xl lg:text-4xl text-center font-extrabold lg:tracking-widest py-10">Pac Man</h1>
+      {/* Virtual Buttons for Mobile */}
+      <div className="flex justify-center mt-4 py-6">
+        <button onClick={() => movePacman('left')} className="p-2 bg-gray-700 text-white rounded mx-2">Left</button>
+        <button onClick={() => movePacman('up')} className="p-2 bg-gray-700 text-white rounded mx-2">Up</button>
+        <button onClick={() => movePacman('down')} className="p-2 bg-gray-700 text-white rounded mx-2">Down</button>
+        <button onClick={() => movePacman('right')} className="p-2 bg-gray-700 text-white rounded mx-2">Right</button>
+      </div>
       <div id="game-grid" className="flex flex-col gap-0">
         {grid.map((row, rowIndex) => (
           <div key={rowIndex} className="flex flex-row gap-0">
@@ -306,6 +351,7 @@ const App = () => {
           <div className="text-white text-lg">Click to Restart or Press R</div>
         </div>
       )}
+      
     </div>
   );
 };
