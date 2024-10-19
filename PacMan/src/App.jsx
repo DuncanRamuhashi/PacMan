@@ -289,14 +289,14 @@ const App = () => {
       case 'B':
         return <img src={bigdot} className="h-5 w-5 block" alt="Big Dot" />;
       case 'E':
-        return <h1></h1>; // Empty space
+        return <h1></h1>; 
       default:
         return null;
     }
   };
 
   return (
-    <div className={`flex flex-col justify-center items-center h-full ${currentTheme} py-16 md:px-40`}>
+    <div className={`flex flex-col justify-center items-center w-full h-full ${currentTheme} py-16 md:px-40`}>
       <h1 className="text-yellow-400 text-2xl lg:text-4xl text-center font-extrabold lg:tracking-widest py-10">Pac Man</h1>
       {/* Virtual Buttons for Mobile */}
       <div className="flex justify-center mt-4 py-6">
