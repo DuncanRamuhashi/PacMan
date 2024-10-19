@@ -202,7 +202,7 @@ const App = () => {
         setPacmanPosition({ x: newX, y: newY });
 
         if (cell === 'B') {
-          setScore((prevScore) => prevScore + 7);
+          setScore((prevScore) => prevScore + 30);
           setPowerPelletActive(true); // Activate power pellet
           setTimeout(() => setPowerPelletActive(false), 5000); // Deactivate after 5 seconds
         } else if (cell === 'S') {
