@@ -1,140 +1,109 @@
-import React, { useState, useEffect } from 'react';
-import hero from './assets/hero.png'; // Pac-Man
-import villan from './assets/villan.png'; // Ghost 1
-import villan2 from './assets/villan2.png'; // Ghost 2
-import villan3 from './assets/villan3.png'; // Ghost 3
-import villan4 from './assets/villan4.png'; // Ghost 4
-import dot from './assets/dot3.png'; // Dots
+import React, { useState } from 'react';
+import blueghost from './assets/Res/blueghost.gif';
+import ghost1 from './assets/Res/ghost1.gif';
+import ghost2 from './assets/Res/ghost2.gif';
+import ghost3 from './assets/Res/ghost3.gif';
+import pacmanDown from './assets/Res/pacmanDown.gif';
+import pacmanLeft from './assets/Res/pacmanLeft.gif';
+import pacmanRight from './assets/Res/pacmanRight.gif';
+import pacmanUp from './assets/Res/pacmanUp.gif';
+import redghost from './assets/Res/redghost.gif';
+import smalldot from './assets/Res/smalldot.png';
+import wall from './assets/Res/wall.png';
+import bigdot from './assets/Res/whitedot.png';
 
-const gridSize = 10; // Size of the grid
-const initialDots = Array.from({ length: gridSize * gridSize }, (_, i) => i);
-const initialGhosts = [
-  { id: 1, position: 22, image: villan },
-  { id: 2, position: 23, image: villan2 },
-  { id: 3, position: 24, image: villan3 },
-  { id: 4, position: 25, image: villan4 },
+const themes = [
+  'bg-slate-800',
+  'bg-black',
+  'bg-red-900',
+  'bg-orange-950',
+  'bg-lime-950',
+  'bg-emerald-950',
+  'bg-sky-950',
+  'bg-rose-950',
 ];
 
 const App = () => {
-  const [pacmanPosition, setPacmanPosition] = useState(0);
-  const [dots, setDots] = useState(initialDots);
-  const [ghosts, setGhosts] = useState(initialGhosts);
-  const [score, setScore] = useState(0);
+  const currentDate = new Date();
+  const formattedDate = currentDate.toLocaleDateString();
+  const currentYear = currentDate.getFullYear();
+  const [currentTheme, setCurrentTheme] = useState('bg-black'); // Default theme
 
-  const movePacman = (direction) => {
-    let newPosition = pacmanPosition;
+  // Theme change function
+  const changeTheme = () => {
+    const randomTheme = themes[Math.floor(Math.random() * themes.length)];
+    setCurrentTheme(randomTheme);
+  };
 
-    switch (direction) {
-      case 'ArrowUp':
-        if (pacmanPosition >= gridSize) newPosition -= gridSize;
-        break;
-      case 'ArrowDown':
-        if (pacmanPosition < gridSize * (gridSize - 1)) newPosition += gridSize;
-        break;
-      case 'ArrowLeft':
-        if (pacmanPosition % gridSize !== 0) newPosition -= 1;
-        break;
-      case 'ArrowRight':
-        if (pacmanPosition % gridSize !== gridSize - 1) newPosition += 1;
-        break;
+  // Grid setup
+  const grid = [
+    'WWWWWWWWWWWWWWWWWWW',
+    'WSSSSSSSSWSSSSSSSSW',
+    'WBWWSWWWWWWWWWSWWBW',
+    'WSSSSSSSSSSSSSSSSSW',
+    'WSWWSWSWWWWWSWSWWSW',
+    'WSSSSWSSSWSSSWSSSSW',
+    'WWWWSWWWEWEWWWSWWWW',
+    'EEEWSWEEEEEEEWSWEEE',
+    'WWWWSWEWEWEWEWSWWWW',
+    'EEEESEEW1E2WEESEEEE',
+    'WWWWSWEWWWWWEWSWWWW',
+    'EEEWSWEEEEEEEWSWEEE',
+    'WWWWSWEWWWWWEWSWWWW',
+    'WSSSSSSSSWSSSSSSSSW',
+    'WBWWSWWWWWWWWWSWWBW',
+    'WSSWSSSSSPSSSSSWSSW',
+    'WWSWSWSWWWWWSWSWSWW',
+    'WSSSSWSSSWSSSWSSSSW',
+    'WSWWWWWWSWSWWWWWWSW',
+    'WSWWWWWWSWSWWWWWWSW',
+    'WWWWWWWWWWWWWWWWWWW',
+  ];
+
+  const printGame = (cell) => {
+    switch (cell) {
+      case 'W':
+        return <img src={wall} alt="Wall" className="h-5 w-5 block" />;
+      case 'S':
+        return <img src={smalldot} className="h-5 w-5 block" alt="Small Dot" />;
+      case 'B':
+        return <img src={bigdot} className="h-5 w-5 block" alt="Big Dot" />;
+      case 'P':
+        return <img src={pacmanRight} alt="Pac-Man" className="h-5 w-5 block" />;
+      case '1':
+        return <img src={redghost} alt="Ghost 1" className="h-5 w-5 block" />;
+      case '2':
+        return <img src={blueghost} alt="Ghost 2" className="h-5 w-5 block" />;
       default:
-        break;
+        return null;
     }
-
-    if (dots.includes(newPosition)) {
-      setDots(dots.filter(dot => dot !== newPosition));
-      setScore(score + 1);
-    }
-
-    setPacmanPosition(newPosition);
   };
-
-  const moveGhosts = () => {
-    setGhosts(ghosts.map(ghost => {
-      const direction = Math.floor(Math.random() * 4);
-      let newPosition = ghost.position;
-
-      switch (direction) {
-        case 0:
-          if (newPosition >= gridSize) newPosition -= gridSize;
-          break;
-        case 1:
-          if (newPosition < gridSize * (gridSize - 1)) newPosition += gridSize;
-          break;
-        case 2:
-          if (newPosition % gridSize !== 0) newPosition -= 1;
-          break;
-        case 3:
-          if (newPosition % gridSize !== gridSize - 1) newPosition += 1;
-          break;
-        default:
-          break;
-      }
-
-      return { ...ghost, position: newPosition };
-    }));
-  };
-
-  useEffect(() => {
-    const handleKeyDown = (event) => {
-      movePacman(event.key);
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    const interval = setInterval(() => moveGhosts(), 400);
-
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      clearInterval(interval);
-    };
-  }, [pacmanPosition, ghosts]);
 
   return (
-    <div className="flex flex-col justify-center items-center h-screen bg-slate-900 py-16 px-52">
+    <div className={`flex flex-col justify-center items-center h-screen ${currentTheme} py-16 px-52`}>
       <h1 className="text-yellow-400 text-4xl font-extrabold tracking-widest py-10">Pac Man</h1>
-      
-  {dots.map(dotIndex => (
-    <img
-      key={dotIndex}
-      src={dot}
-      alt="Dot"
-      className="absolute"
-      style={{
-        left: (dotIndex % gridSize) * 50 + 10,
-        top: Math.floor(dotIndex / gridSize) * 50 + 10,
-        width: '30px',
-        height: '30px',
-      }}
-    />
-  ))}
-  <img
-    src={hero}
-    alt="Pacman"
-    className="absolute"
-    style={{
-      left: (pacmanPosition % gridSize) * 50 + 10,
-      top: Math.floor(pacmanPosition / gridSize) * 50 + 10,
-      width: '50px',
-      height: '50px',
-    }}
-  />
-  {ghosts.map(ghost => (
-    <img
-      key={ghost.id}
-      src={ghost.image} // Use the specific image for each ghost
-      alt={`Ghost ${ghost.id}`}
-      className="absolute"
-      style={{
-        left: (ghost.position % gridSize) * 50 + 10,
-        top: Math.floor(ghost.position / gridSize) * 50 + 10,
-        width: '50px',
-        height: '50px',
-      }}
-    />
-  ))}
-
-
-      <h2 className="text-white">Score: {score}</h2>
+      <div className="flex flex-col gap-0">
+        {grid.map((row, rowIndex) => (
+          <div key={rowIndex} className="flex flex-row gap-0">
+            {row.split('').map((cell, cellIndex) => (
+              <div key={`${rowIndex}-${cellIndex}`} className="w-5 h-5 m-0 p-0">
+                {printGame(cell)}
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
+      <button
+        onClick={changeTheme}
+        className="mb-4 p-2 my-4 rounded bg-gray-900 text-white hover:bg-yellow-500 hover:text-black"
+      >
+        Change Theme
+      </button>
+      <footer className="gap-2 flex h-full w-full justify-center items-center text-white text-center py-5">
+        <p className="text-sm">
+          &copy; {currentYear} Duncan Ramuhashi. All rights reserved.
+        </p>
+      </footer>
     </div>
   );
 };
