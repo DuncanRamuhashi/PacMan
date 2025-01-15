@@ -70,10 +70,10 @@ const App = () => {
       prevGhosts.map((ghost) => {
         const { x, y } = ghost.position;
         const directions = [
-          { dx: 1, dy: 0 }, // right
-          { dx: -1, dy: 0 }, // left
-          { dx: 0, dy: 1 }, // down
-          { dx: 0, dy: -1 }, // up
+          { dx: 1, dy: 0 }, 
+          { dx: -1, dy: 0 }, 
+          { dx: 0, dy: 1 },
+          { dx: 0, dy: -1 }, 
         ];
 
         const validMoves = directions
@@ -103,7 +103,7 @@ const App = () => {
           setGhosts((prevGhosts) =>
             prevGhosts.map((g) => (g.position.x === ghost.position.x && g.position.y === ghost.position.y ? { ...g, scared: true } : g))
           );
-          setScore((prevScore) => prevScore + 10); // Score for eating ghost
+          setScore((prevScore) => prevScore + 10); 
         } else {
           setGameOver(true);
         }
@@ -298,13 +298,15 @@ const App = () => {
   return (
     <div className={`flex flex-col justify-center items-center w-full h-full ${currentTheme} py-16 md:px-40`}>
       <h1 className="text-yellow-400 text-2xl lg:text-4xl text-center font-extrabold lg:tracking-widest py-10">Pac Man</h1>
-      {/* Virtual Buttons for Mobile */}
+      
       <div className="flex justify-center mt-4 py-6">
         <button onClick={() => movePacman('left')} className="p-2 bg-gray-700 text-white rounded mx-2">Left</button>
         <button onClick={() => movePacman('up')} className="p-2 bg-gray-700 text-white rounded mx-2">Up</button>
         <button onClick={() => movePacman('down')} className="p-2 bg-gray-700 text-white rounded mx-2">Down</button>
         <button onClick={() => movePacman('right')} className="p-2 bg-gray-700 text-white rounded mx-2">Right</button>
+       
       </div>
+      <p className='text-white py-6'>Just Bulbs ,  1 small dot = 3 Points , 1 Big dot = 10 Points       </p>
       <div id="game-grid" className="flex flex-col gap-0">
         {grid.map((row, rowIndex) => (
           <div key={rowIndex} className="flex flex-row gap-0">
